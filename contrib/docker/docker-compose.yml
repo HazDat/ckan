@@ -3,14 +3,26 @@
 version: "3"
 
 volumes:
-  ckan_config:
-  ckan_home:
   ckan_storage:
+  ckan_home:
+  ckan_config:
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: /home/nic/ds-ckan/ckan_config
+  ckan_extensions:
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: /home/nic/ds-ckan/ckan_extensions
   pg_data:
 
 services:
   ckan:
     container_name: ckan
+    image: 994001419236.dkr.ecr.ap-southeast-1.amazonaws.com/hz-ds-ckan:latest
     build:
       context: ../../
       args:
@@ -37,6 +49,7 @@ services:
     volumes:
       - ckan_config:/etc/ckan
       - ckan_home:/usr/lib/ckan
+      - ckan_extensions:/home/extensions
       - ckan_storage:/var/lib/ckan
 
   datapusher:
@@ -47,6 +60,7 @@ services:
 
   db:
     container_name: db
+    image: 994001419236.dkr.ecr.ap-southeast-1.amazonaws.com/hz-ds-ckan_db:latest
     build:
       context: ../../
       dockerfile: contrib/docker/postgresql/Dockerfile
@@ -61,6 +75,7 @@ services:
 
   solr:
     container_name: solr
+    image: 994001419236.dkr.ecr.ap-southeast-1.amazonaws.com/hz-ds-ckan_solr
     build:
       context: ../../
       dockerfile: contrib/docker/solr/Dockerfile

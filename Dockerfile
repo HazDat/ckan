@@ -26,6 +26,7 @@ RUN apt-get -q -y update \
 
 # Define environment variables
 ENV CKAN_HOME /usr/lib/ckan
+ENV CKAN_EXT /home/extensions
 ENV CKAN_VENV $CKAN_HOME/venv
 ENV CKAN_CONFIG /etc/ckan
 ENV CKAN_STORAGE_PATH=/var/lib/ckan
@@ -37,9 +38,9 @@ ARG CKAN_SITE_URL
 RUN useradd -r -u 900 -m -c "ckan account" -d $CKAN_HOME -s /bin/false ckan
 
 # Setup virtual environment for CKAN
-RUN mkdir -p $CKAN_VENV $CKAN_CONFIG $CKAN_STORAGE_PATH && \
+RUN mkdir -p $CKAN_VENV $CKAN_CONFIG $CKAN_STORAGE_PATH $CKAN_EXT && \
     virtualenv $CKAN_VENV && \
-    ln -s $CKAN_VENV/bin/pip /usr/local/bin/ckan-pip &&\
+    ln -s $CKAN_VENV/bin/pip /usr/local/bin/ckan-pip && \
     ln -s $CKAN_VENV/bin/paster /usr/local/bin/ckan-paster
 
 # Setup CKAN
@@ -52,6 +53,13 @@ RUN ckan-pip install -U pip && \
     cp -v $CKAN_VENV/src/ckan/contrib/docker/ckan-entrypoint.sh /ckan-entrypoint.sh && \
     chmod +x /ckan-entrypoint.sh && \
     chown -R ckan:ckan $CKAN_HOME $CKAN_VENV $CKAN_CONFIG $CKAN_STORAGE_PATH
+
+RUN /bin/bash -c "source $CKAN_VENV/bin/activate && pushd $CKAN_EXT && \
+                  git clone https://github.com/HazDat/ckanext-hazdat_theme.git && \
+                  pushd ckanext-hazdat_theme && pip install -r requirements.txt && \
+                  python setup.py install && python setup.py develop && popd && popd && deactivate"
+
+RUN chown -R ckan:ckan $CKAN_EXT
 
 ENTRYPOINT ["/ckan-entrypoint.sh"]
 
