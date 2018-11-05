@@ -31,7 +31,7 @@ docker version
 
 ### Set-up AWS credentials
 
-In order to download the HazDat CKAN container an AWS credentials are needed.
+In order to download the HazDat CKAN container AWS credentials are needed.
 
 Now, in the terminal type:
 
@@ -55,6 +55,7 @@ docker login -u AWS -p <stuff> https://994001419236.dkr.ecr.ap-southeast-1.amazo
 
 Next get the the CKAN setup configuration:
 ```{bash}
+cd $HOME
 git clone --recursive https://github.com/HazDat/ckan.git
 cd ckan/contrib/docker
 ```
@@ -66,25 +67,46 @@ ln -s env.template .env
 
 Download and run the CKAN site with:
 ```{bash}
-docker-compose up
+docker-compose up -d
 ```
 
-This will take a while, once it's done (output has stopped), open a new window and check that all containers are running with:
+This will take a while, once it's done check that all containers are running with:
 ```{bash}
 docker ps
 ```
 
-See whether the CKAN website is running by visiting: [http://localhost:5000](http://localhost:5000).
+and see whether the CKAN site is running by visiting: [http://localhost:5000](http://localhost:5000).
 
 ## Customising CKAN templates
 
-There is documentation for creating CKAN themes [here](https://docs.ckan.org/en/2.8/theming/index.html).
+First it is worth looking at the [documentation for creating CKAN themes](https://docs.ckan.org/en/2.8/theming/index.html). In particular [this page](https://docs.ckan.org/en/2.8/theming/css.html) on customising the CSS.
 
-All of the files needed to create the HazDat theme can be found in `extensions/ckanext-hazdat_theme/ckanext/hazdat_theme`.
-
-Once a file has been modified you need to restart CKAN before the changes can be viewed:
+Next we need to get access to the HazDat theme files. Set up an alias to the directory where the templates files are kept:
 
 ```{bash}
-docker-compose restart ckan
+export VOL_CKAN_EXT=$(docker volume inspect docker_ckan_extensions | jq -r -c '.[] | .Mountpoint')
+echo $VOL_CKAN_EXT
 ```
+
+Fix up permissions so that we can easily read and write the files in `$VOL_CKAN_EXT`. This can get a little tricky!
+
+For Mac we first need to install bindfs:
+
+```{bash}
+brew cask install osxfuse
+brew install bindfs
+```
+
+Now use `bindfs` to make the templates directory accessible:
+
+```{bash}
+cd $HOME/ckan/contrib
+mkdir ckan_extensions
+sudo chown -R $(whoami):docker $VOL_CKAN_EXT
+sudo bindfs --map=900/$(whoami) $VOL_CKAN_EXT ckan_extensions
+```
+
+Now all of the files needed to create/modify the HazDat theme can be found in `ckan_extensions/ckanext-hazdat_theme/ckanext/hazdat_theme`. Any changes to CSS or HTML files in here should be immediately visible upon reloading development URL [http://localhost:5000](http://localhost:5000).
+
+For example edit `$HOME/ckan/contrib/ckan_extensions/ckanext-hazdat_theme/ckanext/hazdat_theme/public/hazdat_theme.css` and change the masthead colour and reload the site to see the effect.
 
