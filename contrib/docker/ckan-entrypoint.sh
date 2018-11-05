@@ -12,6 +12,7 @@ set -e
 : ${CKAN_DATAPUSHER_URL:=}
 
 CONFIG="${CKAN_CONFIG}/production.ini"
+DEV_CONFIG="${CKAN_CONFIG}/development.ini"
 
 abort () {
   echo "$@" >&2
@@ -38,6 +39,12 @@ set_environment () {
 
 write_config () {
   ckan-paster make-config --no-interactive ckan "$CONFIG"
+  ckan-paster --plugin=ckan config-tool "$CONFIG" -s app:main -e ckan.plugins="stats text_view image_view recline_view hazdat_theme"
+
+  ckan-paster make-config --no-interactive ckan "$DEV_CONFIG"
+  ckan-paster --plugin=ckan config-tool "$DEV_CONFIG" -s DEFAULT -e debug=true
+  ckan-paster --plugin=ckan config-tool "$DEV_CONFIG" -s app:main -e ckan.plugins="stats text_view image_view recline_view hazdat_theme"
+  ckan-paster --plugin=ckan config-tool "$DEV_CONFIG" -s server:main -e port=5001
 }
 
 # If we don't already have a config file, bootstrap
