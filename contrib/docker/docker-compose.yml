@@ -4,19 +4,7 @@ version: "3"
 
 volumes:
   ckan_storage:
-  ckan_home:
-  ckan_config:
-    driver: local
-    driver_opts:
-        type: none
-        o: bind
-        device: /home/nic/ds-ckan/ckan_config
   ckan_extensions:
-    driver: local
-    driver_opts:
-        type: none
-        o: bind
-        device: /home/nic/ds-ckan/ckan_extensions
   pg_data:
 
 services:
@@ -47,8 +35,6 @@ services:
       - DS_RO_PASS=${DATASTORE_READONLY_PASSWORD}
 
     volumes:
-      - ckan_config:/etc/ckan
-      - ckan_home:/usr/lib/ckan
       - ckan_extensions:/home/extensions
       - ckan_storage:/var/lib/ckan
 
