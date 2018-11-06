@@ -67,17 +67,16 @@ ln -s env.template .env
 
 Download and run the CKAN site with:
 ```{bash}
+docker-compose pull
 docker-compose up -d
 ```
 
-This will take a while, once it's done check that all containers are running with:
+This downloads a lot of stuff and will take a while, once it's done check that all containers are running with:
 ```{bash}
 docker ps
 ```
 
 There should be 5 containers all up. Now see whether the CKAN site is running by visiting: [http://localhost:5000](http://localhost:5000).
-
-
 
 ## Customising CKAN templates
 
@@ -94,6 +93,7 @@ Get the CONTAINER ID for the CKAN container with:
 ```{bash}
 docker ps
 ```
+It is in the first column and the row whose name is 'ckan'.
 
 Now copy the theme files in with:
 
